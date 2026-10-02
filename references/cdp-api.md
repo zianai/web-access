@@ -3,9 +3,8 @@
 ## 基础信息
 
 - 地址：`http://localhost:3456`
-- 启动：`node ~/.claude/skills/web-access/scripts/cdp-proxy.mjs &`
-- 启动后持续运行，不建议主动停止（重启需 Chrome 重新授权）
-- 强制停止：`pkill -f cdp-proxy.mjs`
+- 启动：按 [主 skill 的前置检查](../SKILL.md) 从实际 skill 目录运行 `scripts/check-deps.mjs`，不要依赖另一客户端的固定安装路径。
+- 启动后持续运行，任务结束仅关闭自己的 tab；重置只按下方错误处理执行，可能需浏览器重新授权。
 
 ## API 端点
 
@@ -103,6 +102,12 @@ curl -s "http://localhost:3456/screenshot?target=ID&file=/tmp/shot.png"
 - 根据页面实际 DOM 结构编写选择器，不要套用固定模板
 
 ## 错误处理
+
+CDP 通道及恢复规程由 web-access 统一维护；站点提取 skill 只引用这里，不另存启动/重置副本。
+
+1. 用 `/health` 查看连接状态；端口可访问不等于 `connected: true`，空 `/targets` 也不能单独证明代理失效。权限待批准时如实报告，按主 skill 的前置检查完成浏览器授权后再验证。
+2. 连接挂起或切换浏览器时，先确认是否确需重置，并避免中断其他正在使用代理的任务；仅需读取某页却渲染为空时，先检查页面，不直接杀代理。
+3. 确需重置时执行 `pkill -f cdp-proxy.mjs`，再从实际 skill 目录按主 skill 运行 `scripts/check-deps.mjs`。最多重置并复查一次；仍不通就报告连接/权限状态，不循环重启，也不把候选文本升级为完整原文。
 
 | 错误 | 原因 | 解决 |
 |------|------|------|
